@@ -160,5 +160,50 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.storageBrokerMock.VerifyNoOtherCalls();
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
+
+        [Fact]
+        public async Task ShouldThrowValidationExceptionOnAddIfCreateAndUpdateUserIdsIsNotSameAndLogItAsync()
+        {
+            // given
+            DateTimeOffset randomDateTimeOffset = GetRandomDateTimeOffset();
+            School randomSchool = CreateRandomSchool(randomDateTimeOffset);
+            School invalidSchool = randomSchool;
+            invalidSchool.UpdatedByUserId = Guid.NewGuid();
+
+            var invalidSchoolException =
+                new InvalidSchoolException();
+
+            invalidSchoolException.AddData(
+                key: nameof(School.UpdatedByUserId),
+                values: $"Id is not the same as {nameof(School.CreatedByUserId)}");
+
+            var expectedSchoolValidationException =
+                new SchoolValidationException(invalidSchoolException);
+
+            // when
+            ValueTask<School> addSchoolTask =
+                this.schoolService.AddSchoolAsync(invalidSchool);
+
+            SchoolValidationException actualSchoolValidationException =
+                await Assert.ThrowsAsync<SchoolValidationException>(
+                    addSchoolTask.AsTask);
+
+            // then
+            actualSchoolValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.InsertSchoolAsync(It.IsAny<School>()),
+                    Times.Never);
+
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+        }
     }
 }
