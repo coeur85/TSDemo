@@ -21,5 +21,11 @@ namespace TSDemo.Api.Brokers.Loggings
 
         public void LogWarning(string message) =>
             this.logger.LogWarning(message);
+
+        public void LogError(Exception exception) =>
+            this.logger.LogError(exception.Message, exception);
+
+        public void LogCritical(Exception exception) =>
+            this.logger.LogCritical(exception, exception.Message);
     }
 }
