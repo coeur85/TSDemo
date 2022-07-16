@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.Serialization;
 using Microsoft.Data.SqlClient;
@@ -62,6 +63,13 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
 
         private static DateTimeOffset GetRandomDateTimeOffset() =>
             new DateTimeRange(earliestDate: new DateTime()).GetValue();
+
+        private static IQueryable<School> CreateRandomSchools()
+        {
+            return CreateSchoolFiller(dateTimeOffset: GetRandomDateTimeOffset())
+                .Create(count: GetRandomNumber())
+                    .AsQueryable();
+        }
 
         private static School CreateRandomSchool() =>
             CreateSchoolFiller(dateTimeOffset: GetRandomDateTimeOffset()).Create();
