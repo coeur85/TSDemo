@@ -35,6 +35,29 @@ namespace TSDemo.Api.Services.Foundations.Students
                 (Rule: IsNotRecent(student.CreatedDate), Parameter: nameof(Student.CreatedDate)));
         }
 
+        private void ValidateStudentOnModify(Student student)
+        {
+            ValidateStudentIsNotNull(student);
+
+            Validate(
+                (Rule: IsInvalid(student.Id), Parameter: nameof(Student.Id)),
+
+                // TODO: Add any other required validation rules
+
+                (Rule: IsInvalid(student.CreatedDate), Parameter: nameof(Student.CreatedDate)),
+                (Rule: IsInvalid(student.CreatedByUserId), Parameter: nameof(Student.CreatedByUserId)),
+                (Rule: IsInvalid(student.UpdatedDate), Parameter: nameof(Student.UpdatedDate)),
+                (Rule: IsInvalid(student.UpdatedByUserId), Parameter: nameof(Student.UpdatedByUserId)),
+
+                (Rule: IsSame(
+                    firstDate: student.UpdatedDate,
+                    secondDate: student.CreatedDate,
+                    secondDateName: nameof(Student.CreatedDate)),
+                Parameter: nameof(Student.UpdatedDate)),
+
+                (Rule: IsNotRecent(student.UpdatedDate), Parameter: nameof(student.UpdatedDate)));
+        }
+
         public void ValidateStudentId(Guid studentId) =>
             Validate((Rule: IsInvalid(studentId), Parameter: nameof(Student.Id)));
 
@@ -54,6 +77,28 @@ namespace TSDemo.Api.Services.Foundations.Students
             }
         }
 
+        private static void ValidateAgainstStorageStudentOnModify(Student inputStudent, Student storageStudent)
+        {
+            Validate(
+                (Rule: IsNotSame(
+                    firstDate: inputStudent.CreatedDate,
+                    secondDate: storageStudent.CreatedDate,
+                    secondDateName: nameof(Student.CreatedDate)),
+                Parameter: nameof(Student.CreatedDate)),
+
+                (Rule: IsNotSame(
+                    firstId: inputStudent.CreatedByUserId,
+                    secondId: storageStudent.CreatedByUserId,
+                    secondIdName: nameof(Student.CreatedByUserId)),
+                Parameter: nameof(Student.CreatedByUserId)),
+
+                (Rule: IsSame(
+                    firstDate: inputStudent.UpdatedDate,
+                    secondDate: storageStudent.UpdatedDate,
+                    secondDateName: nameof(Student.UpdatedDate)),
+                Parameter: nameof(Student.UpdatedDate)));
+        }
+
         private static dynamic IsInvalid(Guid id) => new
         {
             Condition = id == Guid.Empty,
@@ -65,6 +110,15 @@ namespace TSDemo.Api.Services.Foundations.Students
             Condition = date == default,
             Message = "Date is required"
         };
+
+        private static dynamic IsSame(
+            DateTimeOffset firstDate,
+            DateTimeOffset secondDate,
+            string secondDateName) => new
+            {
+                Condition = firstDate == secondDate,
+                Message = $"Date is the same as {secondDateName}"
+            };
 
         private static dynamic IsNotSame(
             DateTimeOffset firstDate,

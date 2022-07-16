@@ -47,5 +47,32 @@ namespace TSDemo.Api.Services.Foundations.Students
 
                 return maybeStudent;
             });
+
+        public ValueTask<Student> ModifyStudentAsync(Student student) =>
+            TryCatch(async () =>
+            {
+                ValidateStudentOnModify(student);
+
+                Student maybeStudent =
+                    await this.storageBroker.SelectStudentByIdAsync(student.Id);
+
+                ValidateStorageStudent(maybeStudent, student.Id);
+                ValidateAgainstStorageStudentOnModify(inputStudent: student, storageStudent: maybeStudent);
+
+                return await this.storageBroker.UpdateStudentAsync(student);
+            });
+
+        public ValueTask<Student> RemoveStudentByIdAsync(Guid studentId) =>
+            TryCatch(async () =>
+            {
+                ValidateStudentId(studentId);
+
+                Student maybeStudent = await this.storageBroker
+                    .SelectStudentByIdAsync(studentId);
+
+                ValidateStorageStudent(maybeStudent, studentId);
+
+                return await this.storageBroker.DeleteStudentAsync(maybeStudent);
+            });
     }
 }
