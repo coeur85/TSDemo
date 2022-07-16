@@ -47,5 +47,19 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 return maybeSchool;
             });
+
+        public ValueTask<School> ModifySchoolAsync(School school) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolOnModify(school);
+
+                School maybeSchool =
+                    await this.storageBroker.SelectSchoolByIdAsync(school.Id);
+
+                ValidateStorageSchool(maybeSchool, school.Id);
+                ValidateAgainstStorageSchoolOnModify(inputSchool: school, storageSchool: maybeSchool);
+
+                return await this.storageBroker.UpdateSchoolAsync(school);
+            });
     }
 }

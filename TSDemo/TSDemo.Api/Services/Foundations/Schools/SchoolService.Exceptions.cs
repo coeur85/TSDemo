@@ -54,6 +54,12 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 throw CreateAndLogDependencyValidationException(invalidSchoolReferenceException);
             }
+            catch (DbUpdateConcurrencyException dbUpdateConcurrencyException)
+            {
+                var lockedSchoolException = new LockedSchoolException(dbUpdateConcurrencyException);
+
+                throw CreateAndLogDependencyValidationException(lockedSchoolException);
+            }
             catch (DbUpdateException databaseUpdateException)
             {
                 var failedSchoolStorageException =
