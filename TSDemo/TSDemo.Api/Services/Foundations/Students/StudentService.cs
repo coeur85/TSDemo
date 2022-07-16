@@ -32,6 +32,6 @@ namespace TSDemo.Api.Services.Foundations.Students
             });
 
         public IQueryable<Student> RetrieveAllStudents() =>
-            this.storageBroker.SelectAllStudents();
+            TryCatch(() => this.storageBroker.SelectAllStudents());
     }
 }
