@@ -28,6 +28,10 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                     .Returns(randomDateTimeOffset);
 
             this.storageBrokerMock.Setup(broker =>
+                broker.SelectSchoolByIdAsync(schoolId))
+                    .ReturnsAsync(storageSchool);
+
+            this.storageBrokerMock.Setup(broker =>
                 broker.UpdateSchoolAsync(inputSchool))
                     .ReturnsAsync(updatedSchool);
 
@@ -43,12 +47,16 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                     Times.Once);
 
             this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(inputSchool.Id),
+                    Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
                 broker.UpdateSchoolAsync(inputSchool),
                     Times.Once);
 
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
     }
 }
