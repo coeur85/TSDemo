@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using TSDemo.Api.Brokers.DateTimes;
 using TSDemo.Api.Brokers.Loggings;
@@ -29,5 +30,8 @@ namespace TSDemo.Api.Services.Foundations.Students
 
                 return await this.storageBroker.InsertStudentAsync(student);
             });
+
+        public IQueryable<Student> RetrieveAllStudents() =>
+            throw new System.NotImplementedException();
     }
 }
