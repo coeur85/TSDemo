@@ -36,6 +36,10 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 throw CreateAndLogCriticalDependencyException(failedSchoolStorageException);
             }
+            catch (NotFoundSchoolException notFoundSchoolException)
+            {
+                throw CreateAndLogValidationException(notFoundSchoolException);
+            }
             catch (DuplicateKeyException duplicateKeyException)
             {
                 var alreadyExistsSchoolException =

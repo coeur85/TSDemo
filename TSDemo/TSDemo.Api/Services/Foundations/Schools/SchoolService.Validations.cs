@@ -38,6 +38,14 @@ namespace TSDemo.Api.Services.Foundations.Schools
         public void ValidateSchoolId(Guid schoolId) =>
             Validate((Rule: IsInvalid(schoolId), Parameter: nameof(School.Id)));
 
+        private static void ValidateStorageSchool(School maybeSchool, Guid schoolId)
+        {
+            if (maybeSchool is null)
+            {
+                throw new NotFoundSchoolException(schoolId);
+            }
+        }
+
         private static void ValidateSchoolIsNotNull(School school)
         {
             if (school is null)

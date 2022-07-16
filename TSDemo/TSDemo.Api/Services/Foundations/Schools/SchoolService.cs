@@ -43,6 +43,8 @@ namespace TSDemo.Api.Services.Foundations.Schools
                 School maybeSchool = await this.storageBroker
                     .SelectSchoolByIdAsync(schoolId);
 
+                ValidateStorageSchool(maybeSchool, schoolId);
+
                 return maybeSchool;
             });
     }
