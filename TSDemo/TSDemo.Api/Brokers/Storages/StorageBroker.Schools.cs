@@ -39,5 +39,18 @@ namespace TSDemo.Api.Brokers.Storages
 
             return await broker.Schools.FindAsync(schoolId);
         }
+
+        public async ValueTask<School> UpdateSchoolAsync(School school)
+        {
+            using var broker =
+                new StorageBroker(this.configuration);
+
+            EntityEntry<School> schoolEntityEntry =
+                broker.Schools.Update(school);
+
+            await broker.SaveChangesAsync();
+
+            return schoolEntityEntry.Entity;
+        }
     }
 }
