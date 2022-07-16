@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using EFxceptions.Models.Exceptions;
 using Microsoft.Data.SqlClient;
 using TSDemo.Api.Models.Students;
 using TSDemo.Api.Models.Students.Exceptions;
@@ -31,6 +32,13 @@ namespace TSDemo.Api.Services.Foundations.Students
 
                 throw CreateAndLogCriticalDependencyException(failedStudentStorageException);
             }
+            catch (DuplicateKeyException duplicateKeyException)
+            {
+                var alreadyExistsStudentException =
+                    new AlreadyExistsStudentException(duplicateKeyException);
+
+                throw CreateAndLogDependencyValidationException(alreadyExistsStudentException);
+            }
         }
 
         private StudentValidationException CreateAndLogValidationException(Xeption exception)
@@ -49,6 +57,16 @@ namespace TSDemo.Api.Services.Foundations.Students
             this.loggingBroker.LogCritical(studentDependencyException);
 
             return studentDependencyException;
+        }
+
+        private StudentDependencyValidationException CreateAndLogDependencyValidationException(Xeption exception)
+        {
+            var studentDependencyValidationException =
+                new StudentDependencyValidationException(exception);
+
+            this.loggingBroker.LogError(studentDependencyValidationException);
+
+            return studentDependencyValidationException;
         }
     }
 }
