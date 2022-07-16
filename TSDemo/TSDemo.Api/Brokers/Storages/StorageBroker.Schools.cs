@@ -52,5 +52,18 @@ namespace TSDemo.Api.Brokers.Storages
 
             return schoolEntityEntry.Entity;
         }
+
+        public async ValueTask<School> DeleteSchoolAsync(School school)
+        {
+            using var broker =
+                new StorageBroker(this.configuration);
+
+            EntityEntry<School> schoolEntityEntry =
+                broker.Schools.Remove(school);
+
+            await broker.SaveChangesAsync();
+
+            return schoolEntityEntry.Entity;
+        }
     }
 }
