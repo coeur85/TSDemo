@@ -38,6 +38,16 @@ namespace TSDemo.Api.Services.Foundations.Schools
         private void ValidateSchoolOnModify(School school)
         {
             ValidateSchoolIsNotNull(school);
+
+            Validate(
+                (Rule: IsInvalid(school.Id), Parameter: nameof(School.Id)),
+
+                // TODO: Add any other required validation rules
+
+                (Rule: IsInvalid(school.CreatedDate), Parameter: nameof(School.CreatedDate)),
+                (Rule: IsInvalid(school.CreatedByUserId), Parameter: nameof(School.CreatedByUserId)),
+                (Rule: IsInvalid(school.UpdatedDate), Parameter: nameof(School.UpdatedDate)),
+                (Rule: IsInvalid(school.UpdatedByUserId), Parameter: nameof(School.UpdatedByUserId)));
         }
 
         public void ValidateSchoolId(Guid schoolId) =>
