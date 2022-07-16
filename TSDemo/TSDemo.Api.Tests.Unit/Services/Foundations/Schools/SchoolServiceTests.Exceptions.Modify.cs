@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using EFxceptions.Models.Exceptions;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using TSDemo.Api.Models.Schools;
 using TSDemo.Api.Models.Schools.Exceptions;
@@ -109,6 +110,57 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
 
             this.storageBrokerMock.Verify(broker =>
                 broker.UpdateSchoolAsync(someSchool),
+                    Times.Never);
+
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ShouldThrowDependencyExceptionOnModifyIfDatabaseUpdateExceptionOccursAndLogItAsync()
+        {
+            // given
+            School randomSchool = CreateRandomSchool();
+            var databaseUpdateException = new DbUpdateException();
+
+            var failedSchoolStorageException =
+                new FailedSchoolStorageException(databaseUpdateException);
+
+            var expectedSchoolDependencyException =
+                new SchoolDependencyException(failedSchoolStorageException);
+
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Throws(databaseUpdateException);
+
+            // when
+            ValueTask<School> modifySchoolTask =
+                this.schoolService.ModifySchoolAsync(randomSchool);
+
+            SchoolDependencyException actualSchoolDependencyException =
+                await Assert.ThrowsAsync<SchoolDependencyException>(
+                    modifySchoolTask.AsTask);
+
+            // then
+            actualSchoolDependencyException.Should()
+                .BeEquivalentTo(expectedSchoolDependencyException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(randomSchool.Id),
+                    Times.Never);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolDependencyException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.UpdateSchoolAsync(randomSchool),
                     Times.Never);
 
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
