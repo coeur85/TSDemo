@@ -111,5 +111,48 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
+
+        [Fact]
+        public async Task ShouldThrowDependencyExceptionOnRemoveWhenSqlExceptionOccursAndLogItAsync()
+        {
+            // given
+            Guid someSchoolId = Guid.NewGuid();
+            SqlException sqlException = GetSqlException();
+
+            var failedSchoolStorageException =
+                new FailedSchoolStorageException(sqlException);
+
+            var expectedSchoolDependencyException =
+                new SchoolDependencyException(failedSchoolStorageException);
+
+            this.storageBrokerMock.Setup(broker =>
+                broker.SelectSchoolByIdAsync(It.IsAny<Guid>()))
+                    .ThrowsAsync(sqlException);
+
+            // when
+            ValueTask<School> deleteSchoolTask =
+                this.schoolService.RemoveSchoolByIdAsync(someSchoolId);
+
+            SchoolDependencyException actualSchoolDependencyException =
+                await Assert.ThrowsAsync<SchoolDependencyException>(
+                    deleteSchoolTask.AsTask);
+
+            // then
+            actualSchoolDependencyException.Should()
+                .BeEquivalentTo(expectedSchoolDependencyException);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(It.IsAny<Guid>()),
+                    Times.Once);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogCritical(It.Is(SameExceptionAs(
+                    expectedSchoolDependencyException))),
+                        Times.Once);
+
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+        }
     }
 }
