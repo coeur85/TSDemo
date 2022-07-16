@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using EFxceptions.Models.Exceptions;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using TSDemo.Api.Models.Schools;
 using TSDemo.Api.Models.Schools.Exceptions;
 using Xeptions;
@@ -46,6 +47,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 throw CreateAndLogDependencyValidationException(invalidSchoolReferenceException);
             }
+            catch (DbUpdateException databaseUpdateException)
+            {
+                var failedSchoolStorageException =
+                    new FailedSchoolStorageException(databaseUpdateException);
+
+                throw CreateAndLogDependecyException(failedSchoolStorageException);
+            }
         }
 
         private SchoolValidationException CreateAndLogValidationException(Xeption exception)
@@ -74,6 +82,15 @@ namespace TSDemo.Api.Services.Foundations.Schools
             this.loggingBroker.LogError(schoolDependencyValidationException);
 
             return schoolDependencyValidationException;
+        }
+
+        private SchoolDependencyException CreateAndLogDependecyException(
+            Xeption exception)
+        {
+            var schoolDependencyException = new SchoolDependencyException(exception);
+            this.loggingBroker.LogError(schoolDependencyException);
+
+            return schoolDependencyException;
         }
     }
 }
