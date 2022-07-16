@@ -209,7 +209,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                     modifySchoolTask.AsTask);
 
             // then
-            actualSchoolValidationException.Should().BeEquivalentTo(expectedSchoolValidatonException);
+            actualSchoolValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidatonException);
 
             this.dateTimeBrokerMock.Verify(broker =>
                 broker.GetCurrentDateTimeOffset(),
@@ -227,6 +228,59 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ShouldThrowValidationExceptionOnModifyIfSchoolDoesNotExistAndLogItAsync()
+        {
+            // given
+            DateTimeOffset randomDateTimeOffset = GetRandomDateTimeOffset();
+            School randomSchool = CreateRandomModifySchool(randomDateTimeOffset);
+            School nonExistSchool = randomSchool;
+            School nullSchool = null;
+
+            var notFoundSchoolException =
+                new NotFoundSchoolException(nonExistSchool.Id);
+
+            var expectedSchoolValidationException =
+                new SchoolValidationException(notFoundSchoolException);
+
+            this.storageBrokerMock.Setup(broker =>
+                broker.SelectSchoolByIdAsync(nonExistSchool.Id))
+                .ReturnsAsync(nullSchool);
+
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                .Returns(randomDateTimeOffset);
+
+            // when 
+            ValueTask<School> modifySchoolTask =
+                this.schoolService.ModifySchoolAsync(nonExistSchool);
+
+            SchoolValidationException actualSchoolValidationException =
+                await Assert.ThrowsAsync<SchoolValidationException>(
+                    modifySchoolTask.AsTask);
+
+            // then
+            actualSchoolValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(nonExistSchool.Id),
+                    Times.Once);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
         }
     }
 }
