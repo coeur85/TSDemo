@@ -23,5 +23,13 @@ namespace TSDemo.Api.Brokers.Storages
 
             return schoolEntityEntry.Entity;
         }
+
+        public IQueryable<School> SelectAllSchools()
+        {
+            using var broker =
+                new StorageBroker(this.configuration);
+
+            return broker.Schools;
+        }
     }
 }

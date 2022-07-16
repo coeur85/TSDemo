@@ -8,5 +8,6 @@ namespace TSDemo.Api.Brokers.Storages
     public partial interface IStorageBroker
     {
         ValueTask<School> InsertSchoolAsync(School school);
+        IQueryable<School> SelectAllSchools();
     }
 }
