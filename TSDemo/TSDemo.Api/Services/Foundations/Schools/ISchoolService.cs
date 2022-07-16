@@ -11,5 +11,6 @@ namespace TSDemo.Api.Services.Foundations.Schools
         IQueryable<School> RetrieveAllSchools();
         ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId);
         ValueTask<School> ModifySchoolAsync(School school);
+        ValueTask<School> RemoveSchoolByIdAsync(Guid schoolId);
     }
 }
