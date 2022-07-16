@@ -62,7 +62,12 @@ namespace TSDemo.Api.Services.Foundations.Schools
                 return await this.storageBroker.UpdateSchoolAsync(school);
             });
 
-        public ValueTask<School> RemoveSchoolByIdAsync(Guid schoolId) =>
-            throw new NotImplementedException();
+        public async ValueTask<School> RemoveSchoolByIdAsync(Guid schoolId)
+        {
+            School maybeSchool = await this.storageBroker
+                    .SelectSchoolByIdAsync(schoolId);
+
+            return await this.storageBroker.DeleteSchoolAsync(maybeSchool);
+        }
     }
 }
