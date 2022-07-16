@@ -84,7 +84,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
                     firstDate: inputSchool.CreatedDate,
                     secondDate: storageSchool.CreatedDate,
                     secondDateName: nameof(School.CreatedDate)),
-                Parameter: nameof(School.CreatedDate)));
+                Parameter: nameof(School.CreatedDate)),
+
+                (Rule: IsNotSame(
+                    firstId: inputSchool.CreatedByUserId,
+                    secondId: storageSchool.CreatedByUserId,
+                    secondIdName: nameof(School.CreatedByUserId)),
+                Parameter: nameof(School.CreatedByUserId)));
         }
 
         private static dynamic IsInvalid(Guid id) => new
