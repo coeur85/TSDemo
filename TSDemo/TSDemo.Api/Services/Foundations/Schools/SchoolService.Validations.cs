@@ -24,7 +24,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
                     firstDate: school.UpdatedDate,
                     secondDate: school.CreatedDate,
                     secondDateName: nameof(School.CreatedDate)),
-                Parameter: nameof(School.UpdatedDate)));
+                Parameter: nameof(School.UpdatedDate)),
+
+                (Rule: IsNotSame(
+                    firstId: school.UpdatedByUserId,
+                    secondId: school.CreatedByUserId,
+                    secondIdName: nameof(School.CreatedByUserId)),
+                Parameter: nameof(School.UpdatedByUserId)));
         }
 
         private static void ValidateSchoolIsNotNull(School school)
@@ -54,6 +60,15 @@ namespace TSDemo.Api.Services.Foundations.Schools
             {
                 Condition = firstDate != secondDate,
                 Message = $"Date is not the same as {secondDateName}"
+            };
+
+        private static dynamic IsNotSame(
+            Guid firstId,
+            Guid secondId,
+            string secondIdName) => new
+            {
+                Condition = firstId != secondId,
+                Message = $"Id is not the same as {secondIdName}"
             };
 
         private static void Validate(params (dynamic Rule, string Parameter)[] validations)
