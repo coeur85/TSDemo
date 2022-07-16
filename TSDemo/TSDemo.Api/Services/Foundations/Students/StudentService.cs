@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using TSDemo.Api.Brokers.DateTimes;
 using TSDemo.Api.Brokers.Loggings;
@@ -28,6 +30,22 @@ namespace TSDemo.Api.Services.Foundations.Students
                 ValidateStudentOnAdd(student);
 
                 return await this.storageBroker.InsertStudentAsync(student);
+            });
+
+        public IQueryable<Student> RetrieveAllStudents() =>
+            TryCatch(() => this.storageBroker.SelectAllStudents());
+
+        public ValueTask<Student> RetrieveStudentByIdAsync(Guid studentId) =>
+            TryCatch(async () =>
+            {
+                ValidateStudentId(studentId);
+
+                Student maybeStudent = await this.storageBroker
+                    .SelectStudentByIdAsync(studentId);
+
+                ValidateStorageStudent(maybeStudent, studentId);
+
+                return maybeStudent;
             });
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using EFxceptions.Models.Exceptions;
 using Microsoft.Data.SqlClient;
@@ -12,6 +13,7 @@ namespace TSDemo.Api.Services.Foundations.Students
     public partial class StudentService
     {
         private delegate ValueTask<Student> ReturningStudentFunction();
+        private delegate IQueryable<Student> ReturningStudentsFunction();
 
         private async ValueTask<Student> TryCatch(ReturningStudentFunction returningStudentFunction)
         {
@@ -34,6 +36,10 @@ namespace TSDemo.Api.Services.Foundations.Students
 
                 throw CreateAndLogCriticalDependencyException(failedStudentStorageException);
             }
+            catch (NotFoundStudentException notFoundStudentException)
+            {
+                throw CreateAndLogValidationException(notFoundStudentException);
+            }
             catch (DuplicateKeyException duplicateKeyException)
             {
                 var alreadyExistsStudentException =
@@ -54,6 +60,27 @@ namespace TSDemo.Api.Services.Foundations.Students
                     new FailedStudentStorageException(databaseUpdateException);
 
                 throw CreateAndLogDependecyException(failedStudentStorageException);
+            }
+            catch (Exception exception)
+            {
+                var failedStudentServiceException =
+                    new FailedStudentServiceException(exception);
+
+                throw CreateAndLogServiceException(failedStudentServiceException);
+            }
+        }
+
+        private IQueryable<Student> TryCatch(ReturningStudentsFunction returningStudentsFunction)
+        {
+            try
+            {
+                return returningStudentsFunction();
+            }
+            catch (SqlException sqlException)
+            {
+                var failedStudentStorageException =
+                    new FailedStudentStorageException(sqlException);
+                throw CreateAndLogCriticalDependencyException(failedStudentStorageException);
             }
             catch (Exception exception)
             {
