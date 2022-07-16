@@ -35,7 +35,15 @@ namespace TSDemo.Api.Services.Foundations.Schools
         public IQueryable<School> RetrieveAllSchools() =>
             TryCatch(() => this.storageBroker.SelectAllSchools());
 
-        public async ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId) =>
-            await this.storageBroker.SelectSchoolByIdAsync(schoolId);
+        public ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolId(schoolId);
+
+                School maybeSchool = await this.storageBroker
+                    .SelectSchoolByIdAsync(schoolId);
+
+                return maybeSchool;
+            });
     }
 }
