@@ -53,7 +53,9 @@ namespace TSDemo.Api.Services.Foundations.Schools
                     firstDate: school.UpdatedDate,
                     secondDate: school.CreatedDate,
                     secondDateName: nameof(School.CreatedDate)),
-                Parameter: nameof(School.UpdatedDate)));
+                Parameter: nameof(School.UpdatedDate)),
+
+                (Rule: IsNotRecent(school.UpdatedDate), Parameter: nameof(school.UpdatedDate)));
         }
 
         public void ValidateSchoolId(Guid schoolId) =>

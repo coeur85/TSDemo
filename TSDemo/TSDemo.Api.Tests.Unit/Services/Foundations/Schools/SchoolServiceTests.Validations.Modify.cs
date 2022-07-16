@@ -109,6 +109,10 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             actualSchoolValidationException.Should()
                 .BeEquivalentTo(expectedSchoolValidationException);
 
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
                     expectedSchoolValidationException))),
@@ -118,9 +122,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 broker.UpdateSchoolAsync(It.IsAny<School>()),
                     Times.Never);
 
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -139,6 +143,10 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             var expectedSchoolValidationException =
                 new SchoolValidationException(invalidSchoolException);
 
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Returns(randomDateTimeOffset);
+
             // when
             ValueTask<School> modifySchoolTask =
                 this.schoolService.ModifySchoolAsync(invalidSchool);
@@ -151,6 +159,10 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             actualSchoolValidationException.Should()
                 .BeEquivalentTo(expectedSchoolValidationException);
 
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
                     expectedSchoolValidationException))),
@@ -160,9 +172,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 broker.SelectSchoolByIdAsync(invalidSchool.Id),
                     Times.Never);
 
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
 
         [Theory]
