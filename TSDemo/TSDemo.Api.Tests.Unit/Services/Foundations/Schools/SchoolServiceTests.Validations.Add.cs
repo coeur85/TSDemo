@@ -30,7 +30,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                     addSchoolTask.AsTask);
 
             // then
-            actualSchoolValidationException.Should().BeEquivalentTo(expectedSchoolValidationException);
+            actualSchoolValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidationException);
 
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
@@ -40,6 +41,76 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData(" ")]
+        public async Task ShouldThrowValidationExceptionOnAddIfSchoolIsInvalidAndLogItAsync(string invalidText)
+        {
+            // given
+            var invalidSchool = new School
+            {
+                // Name = invalidText
+            };
+
+            var invalidSchoolException =
+                new InvalidSchoolException();
+
+            invalidSchoolException.AddData(
+                key: nameof(School.Id),
+                values: "Id is required");
+
+            //invalidSchoolException.AddData(
+            //    key: nameof(School.Name),
+            //    values: "Text is required");
+
+            // TODO: Add or remove data here to suit the validation needs for the School model
+
+            invalidSchoolException.AddData(
+                key: nameof(School.CreatedDate),
+                values: "Date is required");
+
+            invalidSchoolException.AddData(
+                key: nameof(School.CreatedByUserId),
+                values: "Id is required");
+
+            invalidSchoolException.AddData(
+                key: nameof(School.UpdatedDate),
+                values: "Date is required");
+
+            invalidSchoolException.AddData(
+                key: nameof(School.UpdatedByUserId),
+                values: "Id is required");
+
+            var expectedSchoolValidationException =
+                new SchoolValidationException(invalidSchoolException);
+
+            // when
+            ValueTask<School> addSchoolTask =
+                this.schoolService.AddSchoolAsync(invalidSchool);
+
+            SchoolValidationException actualSchoolValidationException =
+                await Assert.ThrowsAsync<SchoolValidationException>(
+                    addSchoolTask.AsTask);
+
+            // then
+            actualSchoolValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.InsertSchoolAsync(It.IsAny<School>()),
+                    Times.Never);
+
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
     }
 }
