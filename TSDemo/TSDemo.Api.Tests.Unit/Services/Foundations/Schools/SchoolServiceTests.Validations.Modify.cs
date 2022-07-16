@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
@@ -110,6 +111,47 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
 
             this.storageBrokerMock.Verify(broker =>
                 broker.UpdateSchoolAsync(It.IsAny<School>()),
+                    Times.Never);
+
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ShouldThrowValidationExceptionOnModifyIfUpdatedDateIsSameAsCreatedDateAndLogItAsync()
+        {
+            // given
+            DateTimeOffset randomDateTimeOffset = GetRandomDateTimeOffset();
+            School randomSchool = CreateRandomSchool(randomDateTimeOffset);
+            School invalidSchool = randomSchool;
+            var invalidSchoolException = new InvalidSchoolException();
+
+            invalidSchoolException.AddData(
+                key: nameof(School.UpdatedDate),
+                values: $"Date is the same as {nameof(School.CreatedDate)}");
+
+            var expectedSchoolValidationException =
+                new SchoolValidationException(invalidSchoolException);
+
+            // when
+            ValueTask<School> modifySchoolTask =
+                this.schoolService.ModifySchoolAsync(invalidSchool);
+
+            SchoolValidationException actualSchoolValidationException =
+                await Assert.ThrowsAsync<SchoolValidationException>(
+                    modifySchoolTask.AsTask);
+
+            // then
+            actualSchoolValidationException.Should().BeEquivalentTo(expectedSchoolValidationException);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(invalidSchool.Id),
                     Times.Never);
 
             this.loggingBrokerMock.VerifyNoOtherCalls();
