@@ -47,7 +47,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
                 (Rule: IsInvalid(school.CreatedDate), Parameter: nameof(School.CreatedDate)),
                 (Rule: IsInvalid(school.CreatedByUserId), Parameter: nameof(School.CreatedByUserId)),
                 (Rule: IsInvalid(school.UpdatedDate), Parameter: nameof(School.UpdatedDate)),
-                (Rule: IsInvalid(school.UpdatedByUserId), Parameter: nameof(School.UpdatedByUserId)));
+                (Rule: IsInvalid(school.UpdatedByUserId), Parameter: nameof(School.UpdatedByUserId)),
+
+                (Rule: IsSame(
+                    firstDate: school.UpdatedDate,
+                    secondDate: school.CreatedDate,
+                    secondDateName: nameof(School.CreatedDate)),
+                Parameter: nameof(School.UpdatedDate)));
         }
 
         public void ValidateSchoolId(Guid schoolId) =>
@@ -80,6 +86,15 @@ namespace TSDemo.Api.Services.Foundations.Schools
             Condition = date == default,
             Message = "Date is required"
         };
+
+        private static dynamic IsSame(
+            DateTimeOffset firstDate,
+            DateTimeOffset secondDate,
+            string secondDateName) => new
+            {
+                Condition = firstDate == secondDate,
+                Message = $"Date is the same as {secondDateName}"
+            };
 
         private static dynamic IsNotSame(
             DateTimeOffset firstDate,

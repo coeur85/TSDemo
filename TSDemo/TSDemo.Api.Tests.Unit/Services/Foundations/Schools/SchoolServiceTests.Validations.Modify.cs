@@ -84,7 +84,11 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
 
             invalidSchoolException.AddData(
                 key: nameof(School.UpdatedDate),
-                values: "Date is required");
+                values:
+                new[] {
+                    "Date is required",
+                    $"Date is the same as {nameof(School.CreatedDate)}"
+                });
 
             invalidSchoolException.AddData(
                 key: nameof(School.UpdatedByUserId),
