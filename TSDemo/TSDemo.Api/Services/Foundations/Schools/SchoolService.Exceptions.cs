@@ -78,6 +78,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
                     new FailedSchoolStorageException(sqlException);
                 throw CreateAndLogCriticalDependencyException(failedSchoolStorageException);
             }
+            catch (Exception exception)
+            {
+                var failedSchoolServiceException =
+                    new FailedSchoolServiceException(exception);
+
+                throw CreateAndLogServiceException(failedSchoolServiceException);
+            }
         }
 
         private SchoolValidationException CreateAndLogValidationException(Xeption exception)
