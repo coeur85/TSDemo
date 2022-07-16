@@ -173,9 +173,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 broker.SelectSchoolByIdAsync(invalidSchool.Id),
                     Times.Never);
 
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -279,8 +279,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                     expectedSchoolValidationException))),
                         Times.Once);
 
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
         }
 
@@ -338,8 +338,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                    expectedSchoolValidationException))),
                        Times.Once);
 
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
         }
 
@@ -395,8 +395,60 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                    expectedSchoolValidationException))),
                        Times.Once);
 
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ShouldThrowValidationExceptionOnModifyIfStorageUpdatedDateSameAsUpdatedDateAndLogItAsync()
+        {
+            // given
+            DateTimeOffset randomDateTimeOffset = GetRandomDateTimeOffset();
+            School randomSchool = CreateRandomModifySchool(randomDateTimeOffset);
+            School invalidSchool = randomSchool;
+            School storageSchool = randomSchool.DeepClone();
+
+            var invalidSchoolException = new InvalidSchoolException();
+
+            invalidSchoolException.AddData(
+                key: nameof(School.UpdatedDate),
+                values: $"Date is the same as {nameof(School.UpdatedDate)}");
+
+            var expectedSchoolValidationException =
+                new SchoolValidationException(invalidSchoolException);
+
+            this.storageBrokerMock.Setup(broker =>
+                broker.SelectSchoolByIdAsync(invalidSchool.Id))
+                .ReturnsAsync(storageSchool);
+
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Returns(randomDateTimeOffset);
+
+            // when
+            ValueTask<School> modifySchoolTask =
+                this.schoolService.ModifySchoolAsync(invalidSchool);
+
+            // then
+            await Assert.ThrowsAsync<SchoolValidationException>(
+                modifySchoolTask.AsTask);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(invalidSchool.Id),
+                    Times.Once);
+
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
         }
     }
