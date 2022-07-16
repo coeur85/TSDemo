@@ -22,6 +22,10 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             School storageSchool = inputSchool;
             School expectedSchool = storageSchool.DeepClone();
 
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Returns(randomDateTimeOffset);
+
             this.storageBrokerMock.Setup(broker =>
                 broker.InsertSchoolAsync(inputSchool))
                     .ReturnsAsync(storageSchool);
@@ -33,13 +37,17 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             // then
             actualSchool.Should().BeEquivalentTo(expectedSchool);
 
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once());
+
             this.storageBrokerMock.Verify(broker =>
                 broker.InsertSchoolAsync(inputSchool),
                     Times.Once);
 
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
     }
 }

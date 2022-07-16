@@ -27,8 +27,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 this.schoolService.AddSchoolAsync(nullSchool);
 
             SchoolValidationException actualSchoolValidationException =
-                await Assert.ThrowsAsync<SchoolValidationException>(
-                    addSchoolTask.AsTask);
+                await Assert.ThrowsAsync<SchoolValidationException>(() =>
+                    addSchoolTask.AsTask());
 
             // then
             actualSchoolValidationException.Should()
@@ -93,12 +93,16 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 this.schoolService.AddSchoolAsync(invalidSchool);
 
             SchoolValidationException actualSchoolValidationException =
-                await Assert.ThrowsAsync<SchoolValidationException>(
-                    addSchoolTask.AsTask);
+                await Assert.ThrowsAsync<SchoolValidationException>(() =>
+                    addSchoolTask.AsTask());
 
             // then
             actualSchoolValidationException.Should()
                 .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once());
 
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
@@ -135,17 +139,25 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             var expectedSchoolValidationException =
                 new SchoolValidationException(invalidSchoolException);
 
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Returns(randomDateTimeOffset);
+
             // when
             ValueTask<School> addSchoolTask =
                 this.schoolService.AddSchoolAsync(invalidSchool);
 
             SchoolValidationException actualSchoolValidationException =
-                await Assert.ThrowsAsync<SchoolValidationException>(
-                    addSchoolTask.AsTask);
+                await Assert.ThrowsAsync<SchoolValidationException>(() =>
+                    addSchoolTask.AsTask());
 
             // then
             actualSchoolValidationException.Should()
                 .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once());
 
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
@@ -156,9 +168,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 broker.InsertSchoolAsync(It.IsAny<School>()),
                     Times.Never);
 
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -180,17 +192,25 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             var expectedSchoolValidationException =
                 new SchoolValidationException(invalidSchoolException);
 
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Returns(randomDateTimeOffset);
+
             // when
             ValueTask<School> addSchoolTask =
                 this.schoolService.AddSchoolAsync(invalidSchool);
 
             SchoolValidationException actualSchoolValidationException =
-                await Assert.ThrowsAsync<SchoolValidationException>(
-                    addSchoolTask.AsTask);
+                await Assert.ThrowsAsync<SchoolValidationException>(() =>
+                    addSchoolTask.AsTask());
 
             // then
             actualSchoolValidationException.Should()
                 .BeEquivalentTo(expectedSchoolValidationException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once());
 
             this.loggingBrokerMock.Verify(broker =>
                 broker.LogError(It.Is(SameExceptionAs(
@@ -239,8 +259,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 this.schoolService.AddSchoolAsync(invalidSchool);
 
             SchoolValidationException actualSchoolValidationException =
-                await Assert.ThrowsAsync<SchoolValidationException>(
-                    addSchoolTask.AsTask);
+                await Assert.ThrowsAsync<SchoolValidationException>(() =>
+                    addSchoolTask.AsTask());
 
             // then
             actualSchoolValidationException.Should()
