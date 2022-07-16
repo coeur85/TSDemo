@@ -22,7 +22,7 @@ namespace TSDemo.Api.Services.Foundations.Schools
             this.loggingBroker = loggingBroker;
         }
 
-        public ValueTask<School> AddSchoolAsync(School school) =>
-            throw new System.NotImplementedException();
+        public async ValueTask<School> AddSchoolAsync(School school) =>
+            await this.storageBroker.InsertSchoolAsync(school);
     }
 }
