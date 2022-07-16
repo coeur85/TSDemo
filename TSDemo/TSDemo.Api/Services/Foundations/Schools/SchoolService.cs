@@ -32,6 +32,6 @@ namespace TSDemo.Api.Services.Foundations.Schools
             });
 
         public IQueryable<School> RetrieveAllSchools() =>
-            this.storageBroker.SelectAllSchools();
+            TryCatch(() => this.storageBroker.SelectAllSchools());
     }
 }
