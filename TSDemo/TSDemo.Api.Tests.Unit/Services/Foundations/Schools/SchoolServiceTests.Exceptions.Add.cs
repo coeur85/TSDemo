@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using EFxceptions.Models.Exceptions;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using TSDemo.Api.Models.Schools;
 using TSDemo.Api.Models.Schools.Exceptions;
@@ -139,7 +140,8 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
                 await Assert.ThrowsAsync<SchoolDependencyValidationException>(
                     addSchoolTask.AsTask);
 
-            actualSchoolDependencyValidationException.Should().BeEquivalentTo(expectedSchoolValidationException);
+            actualSchoolDependencyValidationException.Should()
+                .BeEquivalentTo(expectedSchoolValidationException);
 
             this.dateTimeBrokerMock.Verify(broker =>
                 broker.GetCurrentDateTimeOffset(),
@@ -157,6 +159,55 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.storageBrokerMock.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task ShouldThrowDependencyExceptionOnAddIfDatabaseUpdateErrorOccursAndLogItAsync()
+        {
+            // given
+            School someSchool = CreateRandomSchool();
+
+            var databaseUpdateException =
+                new DbUpdateException();
+
+            var failedSchoolStorageException =
+                new FailedSchoolStorageException(databaseUpdateException);
+
+            var expectedSchoolDependencyException =
+                new SchoolDependencyException(failedSchoolStorageException);
+
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Throws(databaseUpdateException);
+
+            // when
+            ValueTask<School> addSchoolTask =
+                this.schoolService.AddSchoolAsync(someSchool);
+
+            SchoolDependencyException actualSchoolDependencyException =
+                await Assert.ThrowsAsync<SchoolDependencyException>(
+                    addSchoolTask.AsTask);
+
+            // then
+            actualSchoolDependencyException.Should()
+                .BeEquivalentTo(expectedSchoolDependencyException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.InsertSchoolAsync(It.IsAny<School>()),
+                    Times.Never);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolDependencyException))),
+                        Times.Once);
+
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
         }
     }
 }
