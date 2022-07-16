@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using EFxceptions.Models.Exceptions;
 using Microsoft.Data.SqlClient;
@@ -54,6 +55,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 throw CreateAndLogDependecyException(failedSchoolStorageException);
             }
+            catch (Exception exception)
+            {
+                var failedSchoolServiceException =
+                    new FailedSchoolServiceException(exception);
+
+                throw CreateAndLogServiceException(failedSchoolServiceException);
+            }
         }
 
         private SchoolValidationException CreateAndLogValidationException(Xeption exception)
@@ -91,6 +99,15 @@ namespace TSDemo.Api.Services.Foundations.Schools
             this.loggingBroker.LogError(schoolDependencyException);
 
             return schoolDependencyException;
+        }
+
+        private SchoolServiceException CreateAndLogServiceException(
+            Xeption exception)
+        {
+            var schoolServiceException = new SchoolServiceException(exception);
+            this.loggingBroker.LogError(schoolServiceException);
+
+            return schoolServiceException;
         }
     }
 }
