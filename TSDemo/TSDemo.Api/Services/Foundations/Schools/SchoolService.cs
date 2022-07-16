@@ -22,7 +22,12 @@ namespace TSDemo.Api.Services.Foundations.Schools
             this.loggingBroker = loggingBroker;
         }
 
-        public async ValueTask<School> AddSchoolAsync(School school) =>
-            await this.storageBroker.InsertSchoolAsync(school);
+        public ValueTask<School> AddSchoolAsync(School school) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolOnAdd(school);
+
+                return await this.storageBroker.InsertSchoolAsync(school);
+            });
     }
 }
