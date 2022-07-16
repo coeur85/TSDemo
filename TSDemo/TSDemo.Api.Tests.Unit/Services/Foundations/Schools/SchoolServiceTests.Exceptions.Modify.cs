@@ -167,5 +167,56 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.storageBrokerMock.VerifyNoOtherCalls();
             this.loggingBrokerMock.VerifyNoOtherCalls();
         }
+
+        [Fact]
+        public async Task ShouldThrowDependencyValidationExceptionOnModifyIfDbUpdateConcurrencyErrorOccursAndLogAsync()
+        {
+            // given
+            School randomSchool = CreateRandomSchool();
+            var databaseUpdateConcurrencyException = new DbUpdateConcurrencyException();
+
+            var lockedSchoolException =
+                new LockedSchoolException(databaseUpdateConcurrencyException);
+
+            var expectedSchoolDependencyValidationException =
+                new SchoolDependencyValidationException(lockedSchoolException);
+
+            this.dateTimeBrokerMock.Setup(broker =>
+                broker.GetCurrentDateTimeOffset())
+                    .Throws(databaseUpdateConcurrencyException);
+
+            // when
+            ValueTask<School> modifySchoolTask =
+                this.schoolService.ModifySchoolAsync(randomSchool);
+
+            SchoolDependencyValidationException actualSchoolDependencyValidationException =
+                await Assert.ThrowsAsync<SchoolDependencyValidationException>(
+                    modifySchoolTask.AsTask);
+
+            // then
+            actualSchoolDependencyValidationException.Should()
+                .BeEquivalentTo(expectedSchoolDependencyValidationException);
+
+            this.dateTimeBrokerMock.Verify(broker =>
+                broker.GetCurrentDateTimeOffset(),
+                    Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(randomSchool.Id),
+                    Times.Never);
+
+            this.loggingBrokerMock.Verify(broker =>
+                broker.LogError(It.Is(SameExceptionAs(
+                    expectedSchoolDependencyValidationException))),
+                        Times.Once);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.UpdateSchoolAsync(randomSchool),
+                    Times.Never);
+
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+        }
     }
 }
