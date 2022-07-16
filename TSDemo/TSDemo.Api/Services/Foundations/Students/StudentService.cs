@@ -43,6 +43,8 @@ namespace TSDemo.Api.Services.Foundations.Students
                 Student maybeStudent = await this.storageBroker
                     .SelectStudentByIdAsync(studentId);
 
+                ValidateStorageStudent(maybeStudent, studentId);
+
                 return maybeStudent;
             });
     }
