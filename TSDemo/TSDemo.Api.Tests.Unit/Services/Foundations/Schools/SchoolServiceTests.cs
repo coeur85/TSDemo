@@ -1,5 +1,7 @@
 using System;
 using System.Linq.Expressions;
+using System.Runtime.Serialization;
+using Microsoft.Data.SqlClient;
 using Moq;
 using TSDemo.Api.Brokers.DateTimes;
 using TSDemo.Api.Brokers.Loggings;
@@ -46,6 +48,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             };
         }
 
+        private static SqlException GetSqlException() =>
+            (SqlException)FormatterServices.GetUninitializedObject(typeof(SqlException));
+
         private static int GetRandomNumber() =>
             new IntRange(min: 2, max: 10).GetValue();
 
@@ -54,6 +59,9 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
 
         private static DateTimeOffset GetRandomDateTimeOffset() =>
             new DateTimeRange(earliestDate: new DateTime()).GetValue();
+
+        private static School CreateRandomSchool() =>
+            CreateSchoolFiller(dateTimeOffset: GetRandomDateTimeOffset()).Create();
 
         private static School CreateRandomSchool(DateTimeOffset dateTimeOffset) =>
             CreateSchoolFiller(dateTimeOffset).Create();
