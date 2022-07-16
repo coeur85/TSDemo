@@ -1,62 +1,65 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Force.DeepCloner;
-using Moq;
+using TSDemo.Api.Brokers.DateTimes;
+using TSDemo.Api.Brokers.Loggings;
+using TSDemo.Api.Brokers.Storages;
 using TSDemo.Api.Models.Schools;
-using Xunit;
 
-namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
+namespace TSDemo.Api.Services.Foundations.Schools
 {
-    public partial class SchoolServiceTests
+    public partial class SchoolService : ISchoolService
     {
-        [Fact]
-        public async Task ShouldModifySchoolAsync()
+        private readonly IStorageBroker storageBroker;
+        private readonly IDateTimeBroker dateTimeBroker;
+        private readonly ILoggingBroker loggingBroker;
+
+        public SchoolService(
+            IStorageBroker storageBroker,
+            IDateTimeBroker dateTimeBroker,
+            ILoggingBroker loggingBroker)
         {
-            // given
-            DateTimeOffset randomDateTimeOffset = GetRandomDateTimeOffset();
-            School randomSchool = CreateRandomModifySchool(randomDateTimeOffset);
-            School inputSchool = randomSchool;
-            School storageSchool = inputSchool.DeepClone();
-            storageSchool.UpdatedDate = randomSchool.CreatedDate;
-            School updatedSchool = inputSchool;
-            School expectedSchool = updatedSchool.DeepClone();
-            Guid schoolId = inputSchool.Id;
-
-            this.dateTimeBrokerMock.Setup(broker =>
-                broker.GetCurrentDateTimeOffset())
-                    .Returns(randomDateTimeOffset);
-
-            this.storageBrokerMock.Setup(broker =>
-                broker.SelectSchoolByIdAsync(schoolId))
-                    .ReturnsAsync(storageSchool);
-
-            this.storageBrokerMock.Setup(broker =>
-                broker.UpdateSchoolAsync(inputSchool))
-                    .ReturnsAsync(updatedSchool);
-
-            // when
-            School actualSchool =
-                await this.schoolService.ModifySchoolAsync(inputSchool);
-
-            // then
-            actualSchool.Should().BeEquivalentTo(expectedSchool);
-
-            this.dateTimeBrokerMock.Verify(broker =>
-                broker.GetCurrentDateTimeOffset(),
-                    Times.Once);
-
-            this.storageBrokerMock.Verify(broker =>
-                broker.SelectSchoolByIdAsync(inputSchool.Id),
-                    Times.Once);
-
-            this.storageBrokerMock.Verify(broker =>
-                broker.UpdateSchoolAsync(inputSchool),
-                    Times.Once);
-
-            this.storageBrokerMock.VerifyNoOtherCalls();
-            this.loggingBrokerMock.VerifyNoOtherCalls();
-            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+            this.storageBroker = storageBroker;
+            this.dateTimeBroker = dateTimeBroker;
+            this.loggingBroker = loggingBroker;
         }
+
+        public ValueTask<School> AddSchoolAsync(School school) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolOnAdd(school);
+
+                return await this.storageBroker.InsertSchoolAsync(school);
+            });
+
+        public IQueryable<School> RetrieveAllSchools() =>
+            TryCatch(() => this.storageBroker.SelectAllSchools());
+
+        public ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolId(schoolId);
+
+                School maybeSchool = await this.storageBroker
+                    .SelectSchoolByIdAsync(schoolId);
+
+                ValidateStorageSchool(maybeSchool, schoolId);
+
+                return maybeSchool;
+            });
+
+        public ValueTask<School> ModifySchoolAsync(School school) =>
+            TryCatch(async () =>
+            {
+                ValidateSchoolOnModify(school);
+
+                School maybeSchool =
+                    await this.storageBroker.SelectSchoolByIdAsync(school.Id);
+
+                ValidateStorageSchool(maybeSchool, school.Id);
+                ValidateAgainstStorageSchoolOnModify(inputSchool: school, storageSchool: maybeSchool);
+
+                return await this.storageBroker.UpdateSchoolAsync(school);
+            });
     }
 }

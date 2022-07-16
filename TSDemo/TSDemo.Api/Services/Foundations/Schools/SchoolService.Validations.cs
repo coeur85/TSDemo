@@ -77,6 +77,16 @@ namespace TSDemo.Api.Services.Foundations.Schools
             }
         }
 
+        private static void ValidateAgainstStorageSchoolOnModify(School inputSchool, School storageSchool)
+        {
+            Validate(
+                (Rule: IsNotSame(
+                    firstDate: inputSchool.CreatedDate,
+                    secondDate: storageSchool.CreatedDate,
+                    secondDateName: nameof(School.CreatedDate)),
+                Parameter: nameof(School.CreatedDate)));
+        }
+
         private static dynamic IsInvalid(Guid id) => new
         {
             Condition = id == Guid.Empty,
