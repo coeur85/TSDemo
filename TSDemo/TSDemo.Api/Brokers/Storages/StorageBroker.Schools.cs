@@ -31,5 +31,13 @@ namespace TSDemo.Api.Brokers.Storages
 
             return broker.Schools;
         }
+
+        public async ValueTask<School> SelectSchoolByIdAsync(Guid schoolId)
+        {
+            using var broker =
+                new StorageBroker(this.configuration);
+
+            return await broker.Schools.FindAsync(schoolId);
+        }
     }
 }

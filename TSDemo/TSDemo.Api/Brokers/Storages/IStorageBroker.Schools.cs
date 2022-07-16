@@ -9,5 +9,6 @@ namespace TSDemo.Api.Brokers.Storages
     {
         ValueTask<School> InsertSchoolAsync(School school);
         IQueryable<School> SelectAllSchools();
+        ValueTask<School> SelectSchoolByIdAsync(Guid schoolId);
     }
 }
