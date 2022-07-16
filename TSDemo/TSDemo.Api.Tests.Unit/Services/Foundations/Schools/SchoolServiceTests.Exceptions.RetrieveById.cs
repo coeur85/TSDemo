@@ -53,5 +53,48 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
             this.loggingBrokerMock.VerifyNoOtherCalls();
             this.dateTimeBrokerMock.VerifyNoOtherCalls();
         }
+
+        [Fact]
+        public async Task ShouldThrowServiceExceptionOnRetrieveByIdIfServiceErrorOccursAndLogItAsync()
+        {
+            // given
+            Guid someId = Guid.NewGuid();
+            var serviceException = new Exception();
+
+            var failedSchoolServiceException =
+                new FailedSchoolServiceException(serviceException);
+
+            var expectedSchoolServiceException =
+                new SchoolServiceException(failedSchoolServiceException);
+
+            this.storageBrokerMock.Setup(broker =>
+                broker.SelectSchoolByIdAsync(It.IsAny<Guid>()))
+                    .ThrowsAsync(serviceException);
+
+            // when
+            ValueTask<School> retrieveSchoolByIdTask =
+                this.schoolService.RetrieveSchoolByIdAsync(someId);
+
+            SchoolServiceException actualSchoolServiceException =
+                await Assert.ThrowsAsync<SchoolServiceException>(
+                    retrieveSchoolByIdTask.AsTask);
+
+            // then
+            actualSchoolServiceException.Should()
+                .BeEquivalentTo(expectedSchoolServiceException);
+
+            this.storageBrokerMock.Verify(broker =>
+                broker.SelectSchoolByIdAsync(It.IsAny<Guid>()),
+                    Times.Once);
+
+            this.loggingBrokerMock.Verify(broker =>
+               broker.LogError(It.Is(SameExceptionAs(
+                   expectedSchoolServiceException))),
+                        Times.Once);
+
+            this.storageBrokerMock.VerifyNoOtherCalls();
+            this.loggingBrokerMock.VerifyNoOtherCalls();
+            this.dateTimeBrokerMock.VerifyNoOtherCalls();
+        }
     }
 }
