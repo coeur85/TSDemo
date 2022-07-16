@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using TSDemo.Api.Brokers.DateTimes;
@@ -33,5 +34,8 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
         public IQueryable<School> RetrieveAllSchools() =>
             TryCatch(() => this.storageBroker.SelectAllSchools());
+
+        public ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId) =>
+            throw new NotImplementedException();
     }
 }
