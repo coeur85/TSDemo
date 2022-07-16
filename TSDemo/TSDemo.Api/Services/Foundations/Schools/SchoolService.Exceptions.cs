@@ -39,6 +39,13 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 throw CreateAndLogDependencyValidationException(alreadyExistsSchoolException);
             }
+            catch (ForeignKeyConstraintConflictException foreignKeyConstraintConflictException)
+            {
+                var invalidSchoolReferenceException =
+                    new InvalidSchoolReferenceException(foreignKeyConstraintConflictException);
+
+                throw CreateAndLogDependencyValidationException(invalidSchoolReferenceException);
+            }
         }
 
         private SchoolValidationException CreateAndLogValidationException(Xeption exception)
