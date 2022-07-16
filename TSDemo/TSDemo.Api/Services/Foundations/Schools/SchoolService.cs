@@ -47,5 +47,8 @@ namespace TSDemo.Api.Services.Foundations.Schools
 
                 return maybeSchool;
             });
+
+        public ValueTask<School> ModifySchoolAsync(School school) =>
+            throw new NotImplementedException();
     }
 }

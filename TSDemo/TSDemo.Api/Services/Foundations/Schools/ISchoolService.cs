@@ -10,5 +10,6 @@ namespace TSDemo.Api.Services.Foundations.Schools
         ValueTask<School> AddSchoolAsync(School school);
         IQueryable<School> RetrieveAllSchools();
         ValueTask<School> RetrieveSchoolByIdAsync(Guid schoolId);
+        ValueTask<School> ModifySchoolAsync(School school);
     }
 }

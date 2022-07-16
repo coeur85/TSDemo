@@ -64,6 +64,17 @@ namespace TSDemo.Api.Tests.Unit.Services.Foundations.Schools
         private static DateTimeOffset GetRandomDateTimeOffset() =>
             new DateTimeRange(earliestDate: new DateTime()).GetValue();
 
+        private static School CreateRandomModifySchool(DateTimeOffset dateTimeOffset)
+        {
+            int randomDaysInPast = GetRandomNegativeNumber();
+            School randomSchool = CreateRandomSchool(dateTimeOffset);
+
+            randomSchool.CreatedDate =
+                randomSchool.CreatedDate.AddDays(randomDaysInPast);
+
+            return randomSchool;
+        }
+
         private static IQueryable<School> CreateRandomSchools()
         {
             return CreateSchoolFiller(dateTimeOffset: GetRandomDateTimeOffset())
